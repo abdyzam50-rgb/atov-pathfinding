@@ -1,7 +1,9 @@
 package com.example.aotvpathfinding.commands
 
+import com.abdy2.aotvpathfinder.TeleportPathfinder
+import com.abdy2.aotvpathfinder.TeleportPathfinder.MovementMode
+import com.abdy2.aotvpathfinder.TeleportPathfinder.TeleportMode
 import com.example.aotvpathfinding.items.SkyblockItemDetector
-import com.example.aotvpathfinding.pathfinding.AStarPathfinder
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
@@ -10,6 +12,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 
 object PathfindCommand {
+    private val pathfinder = TeleportPathfinder()
+
     fun register() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             dispatcher.register(
@@ -20,7 +24,6 @@ object PathfindCommand {
                                 argument("z", IntegerArgumentType.integer()).executes { ctx ->
                                     val source = ctx.source
                                     val player = source.player
-                                    val world = source.world
 
                                     val x = IntegerArgumentType.getInteger(ctx, "x")
                                     val y = IntegerArgumentType.getInteger(ctx, "y")
@@ -35,29 +38,41 @@ object PathfindCommand {
                                         )
                                     }
 
-                                    source.sendFeedback(
-                                        Text.literal("§7Computing AotV path to ($x, $y, $z)...")
+                                    source.sendFeedback(Text.literal("§7Computing path to ($x, $y, $z)..."))
+
+                                    val hops = pathfinder.findPath(
+                                        player,
+                                        startPos,
+                                        goalPos,
+                                        4000,
+                                        MovementMode.HYBRID,
+                                        TeleportMode.HYBRID_TELEPORT,
+                                        true
                                     )
 
-                                    val path = AStarPathfinder.findPath(world, startPos, goalPos)
-
-                                    if (path == null) {
-                                        source.sendFeedback(
-                                            Text.literal("§cNo path found to ($x, $y, $z) within search limit.")
-                                        )
+                                    if (hops.isEmpty()) {
+                                        source.sendFeedback(Text.literal("§cNo path found to ($x, $y, $z)."))
                                     } else {
+                                        val teleportSteps = hops.count { !it.isWalk }
+                                        val walkSteps = hops.count { it.isWalk }
+                                        val totalMana = hops.sumOf { it.manaCost() }
                                         source.sendFeedback(
-                                            Text.literal("§aFound path: §f${path.size - 1} §aAotV uses")
+                                            Text.literal("§aPath found: §f${hops.size} §asteps (§f$teleportSteps §ateleport, §f$walkSteps §awalk) — §f$totalMana §amana")
                                         )
-                                        val display = path.drop(1).take(10)
-                                        display.forEachIndexed { i, pos ->
+                                        hops.take(10).forEachIndexed { i, hop ->
+                                            val label = when {
+                                                hop.requiresShift() -> "§bETHER"
+                                                hop.isWalk -> "§7WALK "
+                                                else -> "§aAOTV "
+                                            }
+                                            val pos = hop.landing()
                                             source.sendFeedback(
-                                                Text.literal("  §7Step ${i + 1}: §f${pos.x}, ${pos.y}, ${pos.z}")
+                                                Text.literal("  $label §f${pos.x}, ${pos.y}, ${pos.z}")
                                             )
                                         }
-                                        if (path.size - 1 > 10) {
+                                        if (hops.size > 10) {
                                             source.sendFeedback(
-                                                Text.literal("  §7... and §f${path.size - 11} §7more steps")
+                                                Text.literal("  §7... and §f${hops.size - 10} §7more steps")
                                             )
                                         }
                                     }
