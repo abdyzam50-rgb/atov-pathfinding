@@ -149,7 +149,7 @@ final class CobaltWalkPathfinder {
         double crampedPenalty = 0.0;
         for (int i = 2; i <= 3; i++) {
             BlockPos check = nextPos.up(i);
-            if (player.getWorld().getBlockState(check).isSolidBlock(player.getWorld(), check)) {
+            if (player.getEntityWorld().getBlockState(check).isSolidBlock(player.getEntityWorld(), check)) {
                 crampedPenalty += 0.1 / i;
             }
         }
@@ -179,13 +179,13 @@ final class CobaltWalkPathfinder {
     }
 
     private boolean isSolidAt(ClientPlayerEntity player, BlockPos pos) {
-        return player.getWorld().getBlockState(pos).isSolidBlock(player.getWorld(), pos);
+        return player.getEntityWorld().getBlockState(pos).isSolidBlock(player.getEntityWorld(), pos);
     }
 
     private NavigationPoint navigationPoint(ClientPlayerEntity player, BlockPos pos) {
-        BlockState feet = player.getWorld().getBlockState(pos);
-        BlockState head = player.getWorld().getBlockState(pos.up());
-        BlockState below = player.getWorld().getBlockState(pos.down());
+        BlockState feet = player.getEntityWorld().getBlockState(pos);
+        BlockState head = player.getEntityWorld().getBlockState(pos.up());
+        BlockState below = player.getEntityWorld().getBlockState(pos.down());
 
         boolean traversable = canWalkThrough(player, feet, pos) && canWalkThrough(player, head, pos.up());
         boolean hasFloor = canWalkOn(player, below, pos.down());
@@ -199,18 +199,18 @@ final class CobaltWalkPathfinder {
         if (state.isAir()) {
             return true;
         }
-        VoxelShape shape = state.getCollisionShape(player.getWorld(), pos);
+        VoxelShape shape = state.getCollisionShape(player.getEntityWorld(), pos);
         return shape.isEmpty();
     }
 
     private boolean canWalkOn(ClientPlayerEntity player, BlockState state, BlockPos pos) {
-        return !state.getCollisionShape(player.getWorld(), pos).isEmpty();
+        return !state.getCollisionShape(player.getEntityWorld(), pos).isEmpty();
     }
 
     private double floorLevel(ClientPlayerEntity player, BlockPos pos) {
         BlockPos belowPos = pos.down();
-        BlockState below = player.getWorld().getBlockState(belowPos);
-        VoxelShape shape = below.getCollisionShape(player.getWorld(), belowPos);
+        BlockState below = player.getEntityWorld().getBlockState(belowPos);
+        VoxelShape shape = below.getCollisionShape(player.getEntityWorld(), belowPos);
         if (shape.isEmpty()) {
             return belowPos.getY();
         }

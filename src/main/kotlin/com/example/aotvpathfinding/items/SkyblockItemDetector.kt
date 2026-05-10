@@ -8,6 +8,6 @@ object SkyblockItemDetector {
 
     fun isAotv(stack: ItemStack): Boolean {
         val nbt = stack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt() ?: return false
-        return nbt.getCompound("ExtraAttributes").getString("id") == AOTV_ID
+        return nbt.getCompoundOrEmpty("ExtraAttributes").getString("id", "") == AOTV_ID
     }
 }

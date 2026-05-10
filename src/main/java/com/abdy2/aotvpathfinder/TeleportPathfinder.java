@@ -703,7 +703,7 @@ public final class TeleportPathfinder {
         Vec3d start = new Vec3d(from.getX() + 0.5, from.getY() + yOffset, from.getZ() + 0.5);
         Vec3d end = new Vec3d(to.getX() + 0.5, to.getY() + yOffset, to.getZ() + 0.5);
 
-        HitResult colliderHit = player.getWorld().raycast(new RaycastContext(
+        HitResult colliderHit = player.getEntityWorld().raycast(new RaycastContext(
             start,
             end,
             RaycastContext.ShapeType.COLLIDER,
@@ -714,7 +714,7 @@ public final class TeleportPathfinder {
             return false;
         }
 
-        HitResult outlineHit = player.getWorld().raycast(new RaycastContext(
+        HitResult outlineHit = player.getEntityWorld().raycast(new RaycastContext(
             start,
             end,
             RaycastContext.ShapeType.OUTLINE,
@@ -743,22 +743,22 @@ public final class TeleportPathfinder {
     }
 
     private boolean isPassableForPlayer(ClientPlayerEntity player, BlockPos pos) {
-        return player.getWorld().getBlockState(pos).isAir();
+        return player.getEntityWorld().getBlockState(pos).isAir();
     }
 
     private boolean isWalkPassable(ClientPlayerEntity player, BlockPos pos) {
-        return player.getWorld().getBlockState(pos)
-            .getCollisionShape(player.getWorld(), pos)
+        return player.getEntityWorld().getBlockState(pos)
+            .getCollisionShape(player.getEntityWorld(), pos)
             .isEmpty();
     }
 
     private boolean isWalkSafeStanding(ClientPlayerEntity player, BlockPos pos) {
-        BlockState feet = player.getWorld().getBlockState(pos);
-        BlockState head = player.getWorld().getBlockState(pos.up());
-        BlockState below = player.getWorld().getBlockState(pos.down());
-        return feet.getCollisionShape(player.getWorld(), pos).isEmpty()
-            && head.getCollisionShape(player.getWorld(), pos.up()).isEmpty()
-            && below.isSolidBlock(player.getWorld(), pos.down());
+        BlockState feet = player.getEntityWorld().getBlockState(pos);
+        BlockState head = player.getEntityWorld().getBlockState(pos.up());
+        BlockState below = player.getEntityWorld().getBlockState(pos.down());
+        return feet.getCollisionShape(player.getEntityWorld(), pos).isEmpty()
+            && head.getCollisionShape(player.getEntityWorld(), pos.up()).isEmpty()
+            && below.isSolidBlock(player.getEntityWorld(), pos.down());
     }
 
     private boolean hasVerticalClearance(ClientPlayerEntity player, BlockPos base, int requiredAirBlocks) {
@@ -783,7 +783,7 @@ public final class TeleportPathfinder {
         }
 
         if (dy > 0) {
-            if (!player.getWorld().getBlockState(from.up(2)).isAir()) {
+            if (!player.getEntityWorld().getBlockState(from.up(2)).isAir()) {
                 return false;
             }
             if (!hasJumpArcClear(player, from, to)) {
@@ -817,7 +817,7 @@ public final class TeleportPathfinder {
         Vec3d fromHead = Vec3d.ofCenter(from).add(0.0, 1.05, 0.0);
         Vec3d toHead = Vec3d.ofCenter(to).add(0.0, 1.05, 0.0);
 
-        HitResult feetHit = player.getWorld().raycast(new RaycastContext(
+        HitResult feetHit = player.getEntityWorld().raycast(new RaycastContext(
             fromFeet,
             toFeet,
             RaycastContext.ShapeType.COLLIDER,
@@ -828,7 +828,7 @@ public final class TeleportPathfinder {
             return false;
         }
 
-        HitResult headHit = player.getWorld().raycast(new RaycastContext(
+        HitResult headHit = player.getEntityWorld().raycast(new RaycastContext(
             fromHead,
             toHead,
             RaycastContext.ShapeType.COLLIDER,
@@ -841,7 +841,7 @@ public final class TeleportPathfinder {
     private boolean hasJumpArcClear(ClientPlayerEntity player, BlockPos from, BlockPos to) {
         Vec3d upStart = Vec3d.ofCenter(from).add(0.0, 0.05, 0.0);
         Vec3d upEnd = upStart.add(0.0, 1.0, 0.0);
-        HitResult vertical = player.getWorld().raycast(new RaycastContext(
+        HitResult vertical = player.getEntityWorld().raycast(new RaycastContext(
             upStart,
             upEnd,
             RaycastContext.ShapeType.COLLIDER,
@@ -854,7 +854,7 @@ public final class TeleportPathfinder {
 
         Vec3d hStart = Vec3d.ofCenter(from).add(0.0, 1.05, 0.0);
         Vec3d hEnd = Vec3d.ofCenter(to).add(0.0, 1.05, 0.0);
-        HitResult horizontal = player.getWorld().raycast(new RaycastContext(
+        HitResult horizontal = player.getEntityWorld().raycast(new RaycastContext(
             hStart,
             hEnd,
             RaycastContext.ShapeType.COLLIDER,
@@ -865,10 +865,10 @@ public final class TeleportPathfinder {
     }
 
     private boolean isSafeStanding(ClientPlayerEntity player, BlockPos pos) {
-        BlockState feet = player.getWorld().getBlockState(pos);
-        BlockState head = player.getWorld().getBlockState(pos.up());
-        BlockState below = player.getWorld().getBlockState(pos.down());
-        return feet.isAir() && head.isAir() && below.isSolidBlock(player.getWorld(), pos.down());
+        BlockState feet = player.getEntityWorld().getBlockState(pos);
+        BlockState head = player.getEntityWorld().getBlockState(pos.up());
+        BlockState below = player.getEntityWorld().getBlockState(pos.down());
+        return feet.isAir() && head.isAir() && below.isSolidBlock(player.getEntityWorld(), pos.down());
     }
 
     private double heuristic(BlockPos from, BlockPos goal) {
